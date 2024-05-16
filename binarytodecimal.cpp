@@ -1,3 +1,6 @@
+// While this code runs fine it has a lot of problems.
+// Input is taken in the form of integer which doesnot let us take bigger values of binary.
+
 #include<iostream>
 #include<math.h>
 using namespace std;
