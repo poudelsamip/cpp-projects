@@ -45,25 +45,28 @@ public:
 class student : public user{
     string sid;
     int grade;
+    int duefees;
 public:
     friend class admin;
     student(){}
-    student(string sid, string name, string uname, string password, int grade) : user(name, uname, password){
+    student(string sid, string name, string uname, string password, int grade, int duefees) : user(name, uname, password){
         this->sid = sid;
         this->grade = grade;
+        this->duefees = duefees;
     }
 
-    void info(){
-        system("cls");
+    void info(int n = 0){
+        if(n == 0) system("cls");
         user::info();
         cout<<"ID\t: "<<sid<<endl;
         cout<<"Grade\t: "<<grade<<endl;
-        cout<<"\nPress ENTER to go back";
-        _getch();
+        cout<<"Dues\t: "<<duefees<<endl;
+        if(n == 0){
+            cout<<"\nPress ENTER to go back";
+            _getch();
+        }
     }
-    
     friend int handleLogin(string uname, string pass, const vector<student>& s);
-    
     void changelogininfo(){
         string oldpw;
         system("cls");
@@ -115,16 +118,16 @@ public:
         cin>>password;
         cout<<"Enter grade\t: ";
         cin>>grade;
-        student temp(sid,name,uname,password,grade);
+        student temp(sid,name,uname,password,grade,10000);
         s.push_back(temp);
         cout<<"\nNew Student Successfully Added ! ";
         _getch();
     }
     void viewStudents(vector<student>& s){
         system("cls");
-        cout<<"Name\t\tID\tGrade"<<endl<<endl;
+        cout<<"Name\t\tID\t\tGrade\t\tDue"<<endl<<endl;
         for(student std : s){
-            cout<<std.name<<'\t'<<std.sid<<'\t'<<std.grade<<endl;
+            cout<<std.name<<"\t\t"<<std.sid<<"\t\t"<<std.grade<<"\t\t"<<std.duefees<<endl;
         }
         _getch();
     }
@@ -136,24 +139,29 @@ public:
         teacher temp(tid,name,uname,password,salary);
         t.push_back(temp);
     }
-};
-void showMenu(int usernum, vector<student>& s){
-    while(1){
+    void feepayment(vector<student>& s){
         system("cls");
-        int ch;
-        cout<<"Student Portal"<<endl<<endl;
-        cout<<"1. View Info"<<endl;
-        cout<<"2. Change LogIn info"<<endl;
-        cout<<"0. Log Out"<<endl;
-        cin>>ch;
-        if(ch == 1)
-            s[usernum].info();
-        else if(ch == 2)
-            s[usernum].changelogininfo();
-        if(ch == 0) break;
+        bool found = false;
+        cout<<"Fee Payment"<<endl<<endl;
+        int amount;
+        string id;
+        cout<<"Enter Student ID : ";
+        cin>>id;
+        for(student &std : s){
+            if(std.sid == id){
+                std.info(1);
+                cout<<endl<<"Enter amount : ";
+                cin>>amount;
+                std.duefees -= amount;
+                found = true;
+                cout<<"Fee paid successfully";
+                break;
+            }
+        }
+        if(!found) cout<<"No student with id "<<id<<" found"<<endl;
+        _getch();
     }
-    return;
-}
+};
 
 int handleLogin(string uname, string pass, const vector<student>& s){
     bool username;
@@ -173,12 +181,33 @@ int handleLogin(string uname, string pass, const vector<student>& s){
     return usernum;
 }
 
+void showMenu(int usernum, vector<student>& s){
+    while(1){
+        system("cls");
+        int ch;
+        cout<<"Student Portal"<<endl<<endl;
+        cout<<"1. View Info"<<endl;
+        cout<<"2. Change LogIn info"<<endl;
+        cout<<"0. Log Out"<<endl;
+        cin>>ch;
+        if(ch == 1){
+            s[usernum].info();
+            system("cls");
+        }
+        else if(ch == 2)
+            s[usernum].changelogininfo();
+        if(ch == 0) break;
+    }
+    return;
+}
+
 void adminMenu(admin& a, vector<student>& s){
     while(1){
         system("cls");
         cout<<"WELCOME TO ADMIN PORTAL"<<endl<<endl;
         cout<<"1. ADD students"<<endl;
         cout<<"2. VIEW all students"<<endl;
+        cout<<"3. Fee Payment"<<endl;
         cout<<"Press ENTER to go back"<<endl;
         char ch;
         ch = _getch();
@@ -191,6 +220,11 @@ void adminMenu(admin& a, vector<student>& s){
             cout<<'2';
             _getch();
             a.viewStudents(s);
+        }
+        else if(ch == '3'){
+            cout<<'3';
+            _getch();
+            a.feepayment(s);
         }
         else break;
     }
@@ -235,11 +269,11 @@ int main(){
                 adminMenu(a, s);
             }
             else{
-                cout<<"Login Credentials are incorrect";
+                cout<<"\nLogin Credentials are incorrect";
                 _getch();
             }
         }
         else break;
-    };
+    }
     return 0;
 }
