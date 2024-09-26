@@ -2,6 +2,7 @@
 #include<string>
 #include<vector>
 #include<conio.h>
+#include<fstream>
 using namespace std;
 
 void typepassword(string& pw){
@@ -41,17 +42,25 @@ public:
     void info(){
         cout<<"Name \t: "<<name<<endl;
     }
+    virtual void readfromfile(ifstream& readfile){
+        getline(readfile, name);
+        getline(readfile, uname);
+        getline(readfile, password);
+    }
+    virtual void writetofile(ofstream& writefile){
+        writefile<<name<<'\n'<<uname<<'\n'<<password<<'\n';
+    }
 };
 class student : public user{
     string sid;
-    int grade;
+    string course;
     int duefees;
 public:
     friend class admin;
     student(){}
-    student(string sid, string name, string uname, string password, int grade, int duefees) : user(name, uname, password){
+    student(string sid, string name, string uname, string password, string course, int duefees) : user(name, uname, password){
         this->sid = sid;
-        this->grade = grade;
+        this->course = course;
         this->duefees = duefees;
     }
 
@@ -59,7 +68,7 @@ public:
         if(n == 0) system("cls");
         user::info();
         cout<<"ID\t: "<<sid<<endl;
-        cout<<"Grade\t: "<<grade<<endl;
+        cout<<"Course\t: "<<course<<endl;
         cout<<"Dues\t: "<<duefees<<endl;
         if(n == 0){
             cout<<"\nPress ENTER to go back";
@@ -84,6 +93,15 @@ public:
             _getch();
         }
     }
+    void readfromfile(ifstream& readfile){
+        user::readfromfile(readfile);
+        readfile >> sid >>  course >> duefees;
+        readfile.ignore();
+    }
+    void writetofile(ofstream& writefile){
+        user::writetofile(writefile);
+        writefile<<sid<<'\n'<<course<<'\n'<<duefees<<'\n';
+    }
 };
 class teacher : public user{
     string tid;
@@ -103,10 +121,35 @@ public:
 class admin : public user{
 public:
     admin(){}
+    void readData(vector<student>& s){
+        ifstream readfile("students.txt");
+        if(!readfile){
+            cout<<"can not access database at the moment.";
+            return;
+        }
+        student temp;
+        while(readfile){
+            temp.readfromfile(readfile);
+            if(readfile)
+                s.push_back(temp);
+        }
+        readfile.close();
+    }
+    void writeData(vector<student>& s){
+        ofstream writefile("students.txt");
+        if(!writefile){
+            cout<<"Could not access database at the moment";
+            return; 
+        }
+        for(student& std : s){
+            std.writetofile(writefile);
+        }
+        writefile.close();
+    }
     void addStudent(vector<student>& s){
         system("cls");
-        string sid, name, unmae, password;
-        int grade;
+        string sid, name, uname, password;
+        string course;
         cout<<"Enter name\t: ";
         cin.ignore();
         getline(cin, name);
@@ -116,23 +159,23 @@ public:
         cin>>uname;
         cout<<"Set password\t: ";
         cin>>password;
-        cout<<"Enter grade\t: ";
-        cin>>grade;
-        student temp(sid,name,uname,password,grade,10000);
+        cout<<"Enter Course\t: ";
+        cin>>course;
+        student temp(sid,name,uname,password,course,10000);
         s.push_back(temp);
         cout<<"\nNew Student Successfully Added ! ";
         _getch();
     }
     void viewStudents(vector<student>& s){
         system("cls");
-        cout<<"Name\t\tID\t\tGrade\t\tDue"<<endl<<endl;
+        cout<<"Name\t\tID\t\tCourse\t\tDue"<<endl<<endl;
         for(student std : s){
-            cout<<std.name<<"\t\t"<<std.sid<<"\t\t"<<std.grade<<"\t\t"<<std.duefees<<endl;
+            cout<<std.name<<"\t\t"<<std.sid<<"\t\t"<<std.course<<"\t\t"<<std.duefees<<endl;
         }
         _getch();
     }
     void addTeacher(vector<teacher>& t){
-        string tid, name, unmae, password;
+        string tid, name, uname, password;
         int salary;
         cout<<"Enter TID NAME UNAME PASSWORD & SALARY in order"<<endl;
         cin>>tid>>name>>uname>>password>>salary;
@@ -234,6 +277,7 @@ int main(){
     vector<student> s;
     vector<teacher> t;
     admin a;
+    a.readData(s);
     while(1){
         system("cls");
         cout<<"WELCOME TO ONLINE PORTAL"<<endl<<endl;
@@ -244,7 +288,6 @@ int main(){
         string un;
         string pw;
         system("cls");
-        cout<<"PLEASE LOGIN TO CONTINUE"<<endl<<endl;
         
         if(choice == 1){
             cout<<"Username : ";
@@ -275,5 +318,6 @@ int main(){
         }
         else break;
     }
+    a.writeData(s);
     return 0;
 }
